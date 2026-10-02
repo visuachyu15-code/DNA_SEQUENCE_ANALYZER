@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strand: Longest Common DNA Substring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;1,400&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c0c0c;--ink:#f3f0ea;--mute:#8b8b86;--line:#262626;--cream:#ece8df;--accent:#5b8fb0;
+--serif:'Newsreader',Georgia,serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.5;scroll-behavior:smooth}
+nav{display:flex;justify-content:center;align-items:center;gap:34px;padding:22px 16px;font:500 13px var(--mono);letter-spacing:.04em;text-transform:uppercase;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+nav a{color:var(--ink);text-decoration:none;transition:color .2s;cursor:pointer}
+nav a:hover{color:var(--cream);text-decoration:underline;text-underline-offset:4px}
+.pill{background:var(--cream);color:#111;padding:9px 18px;border-radius:99px;border:0;font:500 13px var(--mono);text-transform:uppercase;cursor:pointer;transition:background .2s}
+.pill:hover{background:#fff}
+.pill-outline{background:transparent;color:var(--mute);border:1px solid var(--line);padding:9px 18px;border-radius:99px;font:500 13px var(--mono);text-transform:uppercase;cursor:pointer;transition:all .2s}
+.pill-outline:hover{border-color:var(--mute);color:var(--ink);background:#1a1a1a}
+main{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 70px)}
+.left{padding:64px 54px;display:flex;flex-direction:column;gap:22px}
+.right{position:relative;overflow:hidden;border-left:1px solid var(--line);padding:64px 54px;background-color:var(--bg);display:flex;flex-direction:column;gap:22px}
+.right > *{position:relative;z-index:1}
+#dna-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.4}
+h1{font:400 clamp(38px,4.4vw,58px)/1.05 var(--serif);letter-spacing:-.01em}
+h1 em{font-style:italic}
+.lede{color:#cfccc5;max-width:30em}
+.lede u{text-decoration-color:#666;text-underline-offset:4px}
+label,.tag{font:400 12px var(--mono);color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
+.row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px}
+textarea{width:100%;background:#111;border:1px solid var(--line);color:var(--ink);font:400 14px/1.6 var(--mono);padding:12px 14px;resize:vertical;min-height:96px;border-radius:4px;letter-spacing:.06em}
+textarea:focus{outline:1px solid var(--accent)}
+.link{background:none;border:0;color:var(--mute);font:400 12px var(--mono);text-transform:uppercase;cursor:pointer;letter-spacing:.06em;text-decoration:underline;text-underline-offset:4px}
+.link:hover{color:var(--ink)}
+.actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.err{color:#d98a7a;font:400 13px var(--mono);min-height:18px}
+.steps{list-style:none;padding:0;font:400 13px var(--mono);color:var(--mute);letter-spacing:.06em;text-transform:uppercase;display:flex;flex-direction:column;gap:10px}
+.steps b{font-weight:400;opacity:.5;margin-right:14px}
+.card{background:rgba(12,12,12,.92);border:1px solid var(--line);border-radius:4px;padding:22px;backdrop-filter:blur(4px)}
+.big{font:400 clamp(26px,3vw,42px)/1.15 var(--serif);word-break:break-all}
+.big em{font-size:.5em;color:var(--mute);font-style:italic;margin-left:8px}
+.stats{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px}
+.stats div span{display:block;font:400 22px var(--serif)}
+.seq{font:400 14px/1.8 var(--mono);letter-spacing:.1em;word-break:break-all}
+mark{background:var(--cream);color:#111;padding:1px 0;border-radius:2px}
+mark.alt{background:var(--accent);color:#fff}
+.matches{width:100%;border-collapse:collapse;font:400 13px var(--mono);margin-top:10px}
+.matches td,.matches th{padding:8px 4px;border-top:1px solid var(--line);text-align:left;font-weight:400}
+.matches th{color:var(--mute);text-transform:uppercase;letter-spacing:.06em;font-size:11px}
+.dp{overflow:auto;max-height:300px;margin-top:12px}
+.dp table{border-collapse:collapse;font:400 12px var(--mono)}
+.dp td{width:26px;height:26px;text-align:center;color:#555;border:1px solid #1d1d1d}
+.dp td.h{color:var(--mute);border:0}
+.dp td.v{color:var(--ink)}
+.dp td.win{background:var(--cream);color:#111}
+.empty{color:var(--mute);font:400 14px var(--mono);margin-top:40px}
+.hide{display:none}
+
+/* Preset buttons */
+.preset-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.preset-btn{background:transparent;border:1px solid #333;color:var(--ink);font:400 12px var(--mono);padding:7px 14px;border-radius:99px;cursor:pointer;transition:all .2s;letter-spacing:.03em;text-transform:uppercase}
+.preset-btn:hover{border-color:var(--cream);color:#fff}
+.preset-btn.active{background:var(--cream);color:#111;border-color:var(--cream);font-weight:500}
+
+/* Complexity card */
+.complexity-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:12px}
+.cx-item span{display:block;font:400 22px var(--serif);color:var(--ink)}
+.cx-item label{display:block;margin-top:2px}
+.cx-sub{font:400 11px var(--mono);color:var(--mute);margin-top:4px;line-height:1.4}
+.cx-formula{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.cx-formula code{display:block;font:400 12px/1.5 var(--mono);color:var(--accent);margin-top:6px;word-break:break-all;background:#141414;padding:8px 10px;border-radius:3px;border:1px solid var(--line)}
+
+@media(max-width:860px){
+  main{grid-template-columns:1fr}
+  .right{border-left:0;border-top:1px solid var(--line)}
+  .left,.right{padding:40px 22px}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="#input-section" id="nav-input">Input</a>
+  <a href="#algo-section" id="nav-algo">Algorithm</a>
+  <a href="#results-section" id="nav-results">Results</a>
+  <a href="#dp-section" id="nav-dp">DP table</a>
+  <button class="pill" id="run2">Find match</button>
+</nav>
+
+<main>
+<section class="left" id="input-section">
+  <h1>The longest strand <em>two genomes share</em></h1>
+  <p class="lede">Paste two DNA sequences or load real FASTA files. We run dynamic programming in O(n&middot;m) and return <u>every</u> longest common substring, with positions.</p>
+
+  <!-- Preset Buttons without the title -->
+  <div class="preset-chips">
+    <button class="preset-btn active" id="btn-p1">01. Tie Case (ACGTAC / TTACGA)</button>
+    <button class="preset-btn" id="btn-p2">02. Project FASTA (sample.fasta)</button>
+    <button class="preset-btn" id="btn-p3">03. Real Insulin Gene (Human vs Chimp)</button>
+    <button class="preset-btn" id="btn-p4">04. Viral Spike (SARS-CoV-2 vs Bat CoV)</button>
+  </div>
+
+  <div>
+    <div class="row">
+      <label for="s1">Sequence 1 <span id="s1-tag" style="color:var(--accent);font-size:11px;margin-left:6px"></span></label>
+      <span>
+        <button class="link" id="ex">Example</button> &nbsp;·&nbsp;
+        <button class="link" id="load-f1">Load sample.fasta</button> &nbsp;·&nbsp;
+        <button class="link" data-file="s1">Browse FASTA</button>
+      </span>
+    </div>
+    <textarea id="s1" spellcheck="false" placeholder="ACGTAC or paste FASTA starting with >"></textarea>
+  </div>
+
+  <div>
+    <div class="row">
+      <label for="s2">Sequence 2 <span id="s2-tag" style="color:var(--accent);font-size:11px;margin-left:6px"></span></label>
+      <span>
+        <button class="link" id="load-f2">Load sample2.fasta</button> &nbsp;·&nbsp;
+        <button class="link" data-file="s2">Browse FASTA</button>
+      </span>
+    </div>
+    <textarea id="s2" spellcheck="false" placeholder="TTACGA or paste FASTA starting with >"></textarea>
+  </div>
+
+  <input type="file" id="file" accept=".fasta,.fa,.txt" class="hide">
+  <div class="actions">
+    <button class="pill" id="run">Find longest match</button>
+    <button class="pill-outline" id="clear-all">Clear</button>
+    <span class="err" id="err"></span>
+  </div>
+
+  <!-- Algorithm & Complexity Card -->
+  <div class="card" id="algo-section" style="margin-top:6px">
+    <span class="tag">DAA Technique &amp; Complexity</span>
+    <div class="complexity-grid">
+      <div class="cx-item">
+        <span>O(n &times; m)</span>
+        <label>Time Complexity</label>
+        <p class="cx-sub">All pairwise character comparisons</p>
+      </div>
+      <div class="cx-item">
+        <span>O(n &times; m) <em style="font-size:0.65em;color:var(--mute)">/ O(m) opt</em></span>
+        <label>Space Complexity</label>
+        <p class="cx-sub">Standard 2D table or single previous row</p>
+      </div>
+    </div>
+    <div class="cx-formula">
+      <span class="tag">DP Recurrence</span>
+      <code>dp[i][j] = s1[i-1] == s2[j-1] ? dp[i-1][j-1] + 1 : 0</code>
+      <p class="cx-sub" style="margin-top:6px">Mismatch resets to 0 (enforcing continuous substring, unlike LCS).</p>
+    </div>
+  </div>
+
+  <ol class="steps" style="margin-top:6px"><li><b>01</b>Input &amp; clean</li><li><b>02</b>Fill DP table</li><li><b>03</b>Collect all longest matches</li></ol>
+</section>
+
+<section class="right" id="results-section">
+  <canvas id="dna-canvas"></canvas>
+
+  <div id="empty" class="empty">Result appears here.</div>
+  <div id="out" class="hide">
+    <div class="card">
+      <span class="tag">Longest common substring</span>
+      <div class="big" id="subs"></div>
+      <div class="stats">
+        <div><span id="len"></span><label>Length</label></div>
+        <div><span id="sim"></span><label>Similarity</label></div>
+        <div><span id="ms"></span><label>Run Time</label></div>
+        <div><span>O(n&middot;m)</span><label>Time Cmplx</label></div>
+        <div><span>O(m)</span><label>Space Opt</label></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:22px">
+      <span class="tag">Where it sits</span>
+      <div class="seq" id="h1" style="margin-top:10px"></div>
+      <div class="seq" id="h2"></div>
+      <table class="matches"><thead><tr><th>Substring</th><th>Index in S1</th><th>Index in S2</th></tr></thead><tbody id="rows"></tbody></table>
+    </div>
+    <div class="card" id="dp-section" style="margin-top:22px">
+      <div class="row"><span class="tag">DP table</span><button class="link" id="tg">Show</button></div>
+      <div id="dpbox" class="dp hide"></div>
+      <div id="dpnote" class="tag hide">Shown for sequences up to 40 &times; 40</div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+// ---- Real Biological & Project Datasets ----
+const PRESETS = {
+  p1: {
+    s1: "ACGTAC",
+    s2: "TTACGA",
+    t1: "",
+    t2: ""
+  },
+  p2: {
+    s1: ">sample_sequence_1\nACGTACGTTAGC\nCGTAGGCTAACG\n",
+    s2: ">sample_sequence_2\nTTTAGCCGTAGG\nCTAATTACGTAC\n",
+    t1: "sample.fasta",
+    t2: "sample2.fasta"
+  },
+  p3: {
+    s1: ">NCBI_NM_000207.3_Homo_sapiens_insulin_(INS)_Exon_2_CDS\nAGCCCTCCAGGACAGGCTGCATCAGAAGAGGCCATCAAGCAGGTCTGTTCCAAGGGCCTTTGCGTCGG\nAGCCCGGCGCCCCCTGCAACCGTGGCCACCGCCAC",
+    s2: ">NCBI_XM_518428.4_Pan_troglodytes_insulin_(INS)_Exon_2_CDS\nAGCCCTCCAGGACAGGCTGCATCAGAAGAGGCCATCAAGCAGGTCTGTTCCAAGGGCCTTTGCGTCGA\nAGCCCGGCGCCCCCTGCAACCGTGGCCACCGCCAC",
+    t1: "Homo sapiens (Human) INS",
+    t2: "Pan troglodytes (Chimp) INS"
+  },
+  p4: {
+    s1: ">NC_045512.2_SARS-CoV-2_Wuhan-Hu-1_Spike_conserved\nACATGTTTATTTTCTTATTATTTCTTACTCTCACTAGTGGTAGTGACCTTGACCGGTGCACCACTTTT\nGATGATGTTCAAGCTCCTAATTACACTCAACATACTTCATCTATGAGGGGGGTTTACTATCCTGATGA",
+    s2: ">MN996532.2_Bat_coronavirus_RaTG13_Spike_conserved\nACATGTTTATTTTCTTATTATTTCTTACTCTCACTAGTGGTAGTGACCTTGACCGGTGCACCACTTTT\nGATGATGTTCAAGCTCCTAATTACACTCAACATACTTCATCTATGAGGAGTGTTTACTATCCTGATGA",
+    t1: "SARS-CoV-2 Spike",
+    t2: "Bat RaTG13 Spike"
+  }
+};
+
+// ---- Core Algorithm & Helpers ----
+const clean = s => s.replace(/\s+/g, '').toUpperCase();
+const valid = s => /^[ACGT]*$/.test(s);
+
+function parseFasta(text) {
+  const seqs = []; let cur = [];
+  for (const l of text.split(/\r?\n/)) {
+    if (l.startsWith('>')) { if (cur.length) seqs.push(clean(cur.join(''))); cur = []; }
+    else if (l.trim()) cur.push(l);
+  }
+  if (cur.length) seqs.push(clean(cur.join('')));
+  return seqs[0] || '';
+}
+
+function extractSeq(val) {
+  const trimmed = val.trim();
+  if (trimmed.startsWith('>')) return parseFasta(trimmed);
+  return clean(trimmed);
+}
+
+function findAll(s1, s2) {
+  if (!s1 || !s2) return { best: 0, matches: [], dp: null };
+  const n = s1.length, m = s2.length;
+  const dp = Array.from({ length: n + 1 }, () => new Uint32Array(m + 1));
+  let best = 0, ends = [];
+  for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++) {
+    if (s1[i - 1] === s2[j - 1]) {
+      dp[i][j] = dp[i - 1][j - 1] + 1;
+      if (dp[i][j] > best) { best = dp[i][j]; ends = [[i, j]]; }
+      else if (dp[i][j] === best) ends.push([i, j]);
+    } else dp[i][j] = 0;
+  }
+  if (!best) return { best: 0, matches: [], dp };
+  return { best, dp, matches: ends.map(([i, j]) => ({ sub: s1.slice(i - best, i), a: i - best, b: j - best })) };
+}
+
+// ---- UI ----
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+function highlight(seq, ranges, len) {
+  let out = '', pos = 0;
+  [...new Set(ranges)].sort((x, y) => x - y).forEach((st, k) => {
+    if (st < pos) return;
+    out += esc(seq.slice(pos, st)) + '<mark class="' + (k % 2 ? 'alt' : '') + '">' + esc(seq.slice(st, st + len)) + '</mark>';
+    pos = st + len;
+  });
+  return out + esc(seq.slice(pos));
+}
+
+function run() {
+  const s1 = extractSeq($('s1').value);
+  const s2 = extractSeq($('s2').value);
+  const err = $('err');
+  err.textContent = '';
+
+  if (!valid(s1) || !valid(s2)) { err.textContent = 'Only A, C, G, T are allowed (or standard FASTA).'; return; }
+  if (!s1 || !s2) { err.textContent = 'Enter or load both sequences.'; return; }
+
+  const t = performance.now();
+  const { best, matches, dp } = findAll(s1, s2);
+  const ms = performance.now() - t;
+  $('empty').classList.add('hide'); $('out').classList.remove('hide');
+
+  const distinct = [...new Set(matches.map(m => m.sub))];
+  $('subs').innerHTML = best ? distinct.map(esc).join(' <em>or</em> ') : 'None';
+  $('len').textContent = best;
+  $('sim').textContent = (100 * best / Math.min(s1.length, s2.length)).toFixed(1) + '%';
+  $('ms').textContent = ms.toFixed(1) + ' ms';
+  $('h1').innerHTML = 'S1&nbsp; ' + highlight(s1, matches.map(m => m.a), best);
+  $('h2').innerHTML = 'S2&nbsp; ' + highlight(s2, matches.map(m => m.b), best);
+  $('rows').innerHTML = matches.map(m => `<tr><td>${esc(m.sub)}</td><td>${m.a}</td><td>${m.b}</td></tr>`).join('')
+    || '<tr><td colspan="3">No common character</td></tr>';
+
+  // DP table (small inputs only; winning diagonals highlighted)
+  const small = s1.length <= 40 && s2.length <= 40;
+  $('tg').classList.toggle('hide', !small); $('dpnote').classList.toggle('hide', small);
+  if (!small) {
+    $('dpbox').classList.add('hide');
+    $('dpnote').textContent = `DP matrix is ${s1.length} × ${s2.length} cells. Full visualization rendered for ≤ 40 × 40.`;
+  }
+  if (small) {
+    const win = new Set();
+    if (best) for (const m of matches) for (let k = 0; k < best; k++) win.add((m.a + k + 1) + ',' + (m.b + k + 1));
+    let h = '<table><tr><td class="h"></td><td class="h"></td>' + [...s2].map(c => `<td class="h">${c}</td>`).join('') + '</tr>';
+    for (let i = 0; i <= s1.length; i++) {
+      h += `<tr><td class="h">${i ? s1[i - 1] : ''}</td>`;
+      for (let j = 0; j <= s2.length; j++) {
+        const w = win.has(i + ',' + j);
+        h += `<td class="${w ? 'win' : dp[i][j] ? 'v' : ''}">${dp[i][j]}</td>`;
+      }
+      h += '</tr>';
+    }
+    $('dpbox').innerHTML = h + '</table>';
+  }
+}
+
+function loadPreset(key) {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  const p = PRESETS[key];
+  if (!p) return;
+  const btn = $(`btn-${key}`);
+  if (btn) btn.classList.add('active');
+
+  $('s1').value = p.s1;
+  $('s2').value = p.s2;
+  $('s1-tag').textContent = p.t1 ? `[${p.t1}]` : '';
+  $('s2-tag').textContent = p.t2 ? `[${p.t2}]` : '';
+  run();
+}
+
+function clearAll() {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  $('s1').value = '';
+  $('s2').value = '';
+  const t1 = $('s1-tag'), t2 = $('s2-tag');
+  if (t1) t1.textContent = '';
+  if (t2) t2.textContent = '';
+  $('err').textContent = '';
+  $('out').classList.add('hide');
+  $('empty').classList.remove('hide');
+  $('dpbox').classList.add('hide');
+  $('dpbox').innerHTML = '';
+  $('tg').textContent = 'Show';
+  $('s1').focus();
+}
+
+$('run').onclick = $('run2').onclick = run;
+$('clear-all').onclick = clearAll;
+
+// Preset buttons
+$('btn-p1').onclick = () => loadPreset('p1');
+$('btn-p2').onclick = () => loadPreset('p2');
+$('btn-p3').onclick = () => loadPreset('p3');
+$('btn-p4').onclick = () => loadPreset('p4');
+
+// Example button
+$('ex').onclick = () => loadPreset('p1');
+
+// Direct sample FASTA buttons
+$('load-f1').onclick = () => {
+  loadPreset('p2');
+};
+$('load-f2').onclick = () => {
+  loadPreset('p2');
+};
+
+$('tg').onclick = () => { const b = $('dpbox'); b.classList.toggle('hide'); $('tg').textContent = b.classList.contains('hide') ? 'Show' : 'Hide'; };
+
+let target = null;
+document.querySelectorAll('[data-file]').forEach(b => b.onclick = () => { target = b.dataset.file; $('file').click(); });
+$('file').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const text = await f.text();
+  $(target).value = text;
+  $(target + '-tag').textContent = `[${f.name}]`;
+  e.target.value = '';
+  if ($('s1').value && $('s2').value) run();
+};
+
+// ---- Navigation Links ----
+$('nav-input').onclick = (e) => {
+  e.preventDefault();
+  $('s1').focus();
+  $('input-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+$('nav-algo').onclick = (e) => {
+  e.preventDefault();
+  $('algo-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+$('nav-results').onclick = (e) => {
+  e.preventDefault();
+  const target = $('out').classList.contains('hide') ? $('empty') : $('out');
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+$('nav-dp').onclick = (e) => {
+  e.preventDefault();
+  if ($('out').classList.contains('hide')) {
+    loadPreset('p1');
+  }
+  const b = $('dpbox');
+  if (b.classList.contains('hide')) {
+    b.classList.remove('hide');
+    $('tg').textContent = 'Hide';
+  }
+  $('dp-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+// ---- Floating DNA Strands Canvas Animation ----
+(function initDNAStrands() {
+  const canvas = $('dna-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let width, height;
+  let t = 0;
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    width = canvas.width = rect.width;
+    height = canvas.height = rect.height;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const basePairs = [
+    ['A', 'T'], ['T', 'A'], ['C', 'G'], ['G', 'C'],
+    ['A', 'T'], ['G', 'C'], ['C', 'G'], ['T', 'A']
+  ];
+
+  function drawHelix(cx, baseY, amp, wavelength, speedMultiplier, alphaBase) {
+    const spacing = 16;
+    for (let i = -2; i < height + 40; i += spacing) {
+      const phase = (i / wavelength) + (t * speedMultiplier);
+      const sinVal = Math.sin(phase);
+      const cosVal = Math.cos(phase);
+      
+      const x1 = cx + sinVal * amp;
+      const x2 = cx - sinVal * amp;
+      const y = i;
+
+      // Connecting rung
+      const rungAlpha = (0.08 + (cosVal + 1) * 0.08) * alphaBase;
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(236, 232, 223, ${rungAlpha})`;
+      ctx.lineWidth = 1;
+      ctx.moveTo(x1, y);
+      ctx.lineTo(x2, y);
+      ctx.stroke();
+
+      // Strand 1 node
+      const r1 = 2 + (cosVal + 1) * 0.8;
+      ctx.beginPath();
+      ctx.fillStyle = cosVal > 0 ? `rgba(236, 232, 223, ${0.4 * alphaBase})` : `rgba(91, 143, 176, ${0.3 * alphaBase})`;
+      ctx.arc(x1, y, r1, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Strand 2 node
+      const r2 = 2 + (-cosVal + 1) * 0.8;
+      ctx.beginPath();
+      ctx.fillStyle = cosVal < 0 ? `rgba(236, 232, 223, ${0.4 * alphaBase})` : `rgba(91, 143, 176, ${0.3 * alphaBase})`;
+      ctx.arc(x2, y, r2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Periodic base letters
+      const bpIdx = Math.floor(Math.abs(i / spacing)) % basePairs.length;
+      if (i % (spacing * 3) < spacing) {
+        ctx.font = '10px "IBM Plex Mono", monospace';
+        ctx.fillStyle = `rgba(243, 240, 234, ${0.25 * alphaBase})`;
+        ctx.fillText(basePairs[bpIdx][0], x1 - 12, y + 3);
+        ctx.fillText(basePairs[bpIdx][1], x2 + 6, y + 3);
+      }
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    drawHelix(width * 0.35, 0, 48, 120, 0.015, 0.75);
+    drawHelix(width * 0.82, 0, 36, 100, -0.012, 0.55);
+    t += 1;
+    requestAnimationFrame(animate);
+  }
+
+  requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>

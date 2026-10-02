@@ -1,0 +1,26 @@
+Test Cases  (Longest Common DNA Substring)
+===========================================
+Case | S1       | S2       | Expected substring | Expected length
+-----|----------|----------|--------------------|----------------
+Ex   | ACGTAC   | TTACGA   | ACG and TAC (tie)  | 3
+1    | ACGT     | TTACG    | ACG                | 3
+2    | AAAA     | CCCC     | None               | 0
+3    | ACGT     | ACGT     | ACGT               | 4
+4    | A        | A        | A                  | 1
+5    | A        | C        | None               | 0
+6    | ACGT     | CG       | CG                 | 2
+8    | ACG      | TACGTT   | ACG                | 3
+E1   | (empty)  | ACGT     | None               | 0
+E2   | ACGT     | (empty)  | None               | 0
+E3   | (empty)  | (empty)  | None               | 0
+E4   | AACCGGTT | CCGG     | CCGG               | 4
+E5   | ACGTTT   | ACGAAA   | ACG (at beginning) | 3
+E6   | TTTACG   | AAAACG   | ACG (at end)       | 3
+E7   | AAATTT   | TTTAAA   | AAA and TTT (tie)  | 3
+
+Case 7 from the document (XYZ / YZ) is generic text, not DNA, so it is rejected by
+the DNA validation in main.py. The algorithm itself still returns YZ, 2 for it.
+
+Run all cases:  python run_tests.py
+All tied longest substrings are reported. run_tests.py also checks positions, input cleanup,
+FASTA parsing, and 2000 random pairs against a brute-force reference (21 checks in total).

@@ -1,0 +1,23 @@
+﻿PASS  case 01  ACGTAC    TTACGA    -> ['ACG', 'TAC']
+PASS  case 02  ACGT      TTACG     -> ['ACG']
+PASS  case 03  AAAA      CCCC      -> None
+PASS  case 04  ACGT      ACGT      -> ['ACGT']
+PASS  case 05  A         A         -> ['A']
+PASS  case 06  A         C         -> None
+PASS  case 07  ACGT      CG        -> ['CG']
+PASS  case 08  ACG       TACGTT    -> ['ACG']
+PASS  case 09  (empty)   ACGT      -> None
+PASS  case 10  ACGT      (empty)   -> None
+PASS  case 11  (empty)   (empty)   -> None
+PASS  case 12  AACCGGTT  CCGG      -> ['CCGG']
+PASS  case 13  ACGTTT    ACGAAA    -> ['ACG']
+PASS  case 14  TTTACG    AAAACG    -> ['ACG']
+PASS  case 15  AAATTT    TTTAAA    -> ['AAA', 'TTT']
+PASS  positions: ACG (0,2) and TAC (3,1) reported
+PASS  longest_common_substring() still returns (sub, len)
+PASS  clean() handles lowercase and whitespace
+PASS  validate_dna() rejects non-ACGT
+PASS  read_fasta() joins wrapped lines and splits records
+PASS  2000 random pairs: both DP versions == brute force
+
+21/21 checks passed
