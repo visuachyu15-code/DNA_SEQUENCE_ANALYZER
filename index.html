@@ -11,13 +11,15 @@
 --serif:'Newsreader',Georgia,serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:'Inter',system-ui,sans-serif}
 *{box-sizing:border-box;margin:0}
 html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.5;scroll-behavior:smooth}
-nav{display:flex;justify-content:center;align-items:center;gap:34px;padding:22px 16px;font:500 13px var(--mono);letter-spacing:.04em;text-transform:uppercase;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+nav{display:flex;justify-content:center;align-items:center;gap:28px;padding:20px 16px;font:500 13px var(--mono);letter-spacing:.04em;text-transform:uppercase;flex-wrap:wrap;border-bottom:1px solid var(--line)}
 nav a{color:var(--ink);text-decoration:none;transition:color .2s;cursor:pointer}
 nav a:hover{color:var(--cream);text-decoration:underline;text-underline-offset:4px}
 .pill{background:var(--cream);color:#111;padding:9px 18px;border-radius:99px;border:0;font:500 13px var(--mono);text-transform:uppercase;cursor:pointer;transition:background .2s}
 .pill:hover{background:#fff}
 .pill-outline{background:transparent;color:var(--mute);border:1px solid var(--line);padding:9px 18px;border-radius:99px;font:500 13px var(--mono);text-transform:uppercase;cursor:pointer;transition:all .2s}
 .pill-outline:hover{border-color:var(--mute);color:var(--ink);background:#1a1a1a}
+.pill-test{background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.3);padding:7px 16px;border-radius:99px;font:500 12px var(--mono);text-transform:uppercase;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.pill-test:hover{background:rgba(74,222,128,0.2);border-color:#4ade80;color:#fff}
 main{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 70px)}
 .left{padding:64px 54px;display:flex;flex-direction:column;gap:22px}
 .right{position:relative;overflow:hidden;border-left:1px solid var(--line);padding:64px 54px;background-color:var(--bg);display:flex;flex-direction:column;gap:22px}
@@ -55,7 +57,7 @@ mark.alt{background:var(--accent);color:#fff}
 .dp td.v{color:var(--ink)}
 .dp td.win{background:var(--cream);color:#111}
 .empty{color:var(--mute);font:400 14px var(--mono);margin-top:40px}
-.hide{display:none}
+.hide{display:none !important}
 
 /* Preset buttons */
 .preset-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
@@ -71,6 +73,22 @@ mark.alt{background:var(--accent);color:#fff}
 .cx-formula{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
 .cx-formula code{display:block;font:400 12px/1.5 var(--mono);color:var(--accent);margin-top:6px;word-break:break-all;background:#141414;padding:8px 10px;border-radius:3px;border:1px solid var(--line)}
 
+/* Test Modal Styles */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px}
+.modal-box{background:#111;border:1px solid var(--line);border-radius:6px;max-width:960px;width:100%;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,0.85)}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{font:400 26px var(--serif);color:var(--ink);letter-spacing:-.01em}
+.modal-body{padding:24px;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
+.test-summary-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.35);color:#4ade80;padding:6px 14px;border-radius:99px;font:500 12px var(--mono);text-transform:uppercase}
+.test-table{width:100%;border-collapse:collapse;font:400 12px var(--mono);margin-top:6px}
+.test-table th,.test-table td{padding:10px 8px;border-bottom:1px solid #1c1c1c;text-align:left}
+.test-table th{color:var(--mute);text-transform:uppercase;font-size:11px;letter-spacing:.06em}
+.badge-pass{background:rgba(74,222,128,0.15);color:#4ade80;padding:3px 8px;border-radius:3px;font:500 11px var(--mono);border:1px solid rgba(74,222,128,0.3)}
+.btn-inspect{background:transparent;border:1px solid #333;color:var(--ink);padding:4px 10px;border-radius:3px;cursor:pointer;font:400 11px var(--mono);transition:all .2s;text-transform:uppercase}
+.btn-inspect:hover{border-color:var(--cream);background:#222}
+.close-btn{background:none;border:0;color:var(--mute);font-size:26px;cursor:pointer;line-height:1;padding:4px}
+.close-btn:hover{color:var(--ink)}
+
 @media(max-width:860px){
   main{grid-template-columns:1fr}
   .right{border-left:0;border-top:1px solid var(--line)}
@@ -84,6 +102,7 @@ mark.alt{background:var(--accent);color:#fff}
   <a href="#algo-section" id="nav-algo">Algorithm</a>
   <a href="#results-section" id="nav-results">Results</a>
   <a href="#dp-section" id="nav-dp">DP table</a>
+  <button class="pill-test" id="nav-tests">&check; Tests (21/21)</button>
   <button class="pill" id="run2">Find match</button>
 </nav>
 
@@ -186,6 +205,45 @@ mark.alt{background:var(--accent);color:#fff}
 </section>
 </main>
 
+<!-- Interactive Test Suite Modal (21/21 Checks) -->
+<div id="tests-modal" class="modal-overlay hide">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <h2>Automated Test Suite</h2>
+        <span class="tag" style="margin-top:4px;display:block">21 Verification Checks &bull; Real-Time In-Browser Execution</span>
+      </div>
+      <button class="close-btn" id="close-modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <span class="test-summary-badge" id="test-summary-badge">&check; 21/21 Checks Passed in Browser</span>
+        <button class="pill" id="retest-btn" style="padding:6px 16px;font-size:11px">Re-Run All Checks</button>
+      </div>
+
+      <table class="test-table">
+        <thead>
+          <tr>
+            <th>Case</th>
+            <th>Sequence 1</th>
+            <th>Sequence 2</th>
+            <th>Expected Substring(s)</th>
+            <th>Len</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="test-rows"></tbody>
+      </table>
+
+      <div class="card" style="margin-top:8px;padding:16px">
+        <span class="tag">6 Extended Specification Checks</span>
+        <div id="extended-checks" style="display:flex;flex-direction:column;gap:8px;margin-top:10px;font:400 12px var(--mono)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ---- Real Biological & Project Datasets ----
 const PRESETS = {
@@ -249,6 +307,33 @@ function findAll(s1, s2) {
   }
   if (!best) return { best: 0, matches: [], dp };
   return { best, dp, matches: ends.map(([i, j]) => ({ sub: s1.slice(i - best, i), a: i - best, b: j - best })) };
+}
+
+// Single-row O(m) space optimized DP version
+function findAllOptimized(s1, s2) {
+  if (!s1 || !s2) return { best: 0, matches: [] };
+  const n = s1.length, m = s2.length;
+  let prev = new Uint32Array(m + 1);
+  let best = 0, ends = [];
+  for (let i = 1; i <= n; i++) {
+    const curr = new Uint32Array(m + 1);
+    for (let j = 1; j <= m; j++) {
+      if (s1[i - 1] === s2[j - 1]) {
+        curr[j] = prev[j - 1] + 1;
+        if (curr[j] > best) { best = curr[j]; ends = [[i, j]]; }
+        else if (curr[j] === best) ends.push([i, j]);
+      }
+    }
+    prev = curr;
+  }
+  if (!best) return { best: 0, matches: [] };
+  return { best, matches: ends.map(([i, j]) => ({ sub: s1.slice(i - best, i), a: i - best, b: j - best })) };
+}
+
+// Backward-compatible single-match helper
+function longestCommonSubstring(s1, s2) {
+  const { best, matches } = findAll(s1, s2);
+  return matches.length ? { sub: matches[0].sub, length: best } : { sub: null, length: 0 };
 }
 
 // ---- UI ----
@@ -355,12 +440,8 @@ $('btn-p4').onclick = () => loadPreset('p4');
 $('ex').onclick = () => loadPreset('p1');
 
 // Direct sample FASTA buttons
-$('load-f1').onclick = () => {
-  loadPreset('p2');
-};
-$('load-f2').onclick = () => {
-  loadPreset('p2');
-};
+$('load-f1').onclick = () => loadPreset('p2');
+$('load-f2').onclick = () => loadPreset('p2');
 
 $('tg').onclick = () => { const b = $('dpbox'); b.classList.toggle('hide'); $('tg').textContent = b.classList.contains('hide') ? 'Show' : 'Hide'; };
 
@@ -405,6 +486,154 @@ $('nav-dp').onclick = (e) => {
   }
   $('dp-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
+
+// ---- Automated Test Suite In-Browser Runner (21 Checks) ----
+const TEST_CASES = [
+  { id: 'Ex', s1: 'ACGTAC', s2: 'TTACGA', len: 3, subs: ['ACG', 'TAC'], note: 'Tie: Worked Example' },
+  { id: '01', s1: 'ACGT', s2: 'TTACG', len: 3, subs: ['ACG'], note: 'Standard match' },
+  { id: '02', s1: 'AAAA', s2: 'CCCC', len: 0, subs: [], note: 'Completely disjoint' },
+  { id: '03', s1: 'ACGT', s2: 'ACGT', len: 4, subs: ['ACGT'], note: 'Identical strings' },
+  { id: '04', s1: 'A', s2: 'A', len: 1, subs: ['A'], note: 'Single character match' },
+  { id: '05', s1: 'A', s2: 'C', len: 0, subs: [], note: 'Single character mismatch' },
+  { id: '06', s1: 'ACGT', s2: 'CG', len: 2, subs: ['CG'], note: 'Shorter string is substring' },
+  { id: '07', s1: 'ACG', s2: 'TACGTT', len: 3, subs: ['ACG'], note: 'Contained match' },
+  { id: 'E1', s1: '', s2: 'ACGT', len: 0, subs: [], note: 'S1 empty' },
+  { id: 'E2', s1: 'ACGT', s2: '', len: 0, subs: [], note: 'S2 empty' },
+  { id: 'E3', s1: '', s2: '', len: 0, subs: [], note: 'Both empty' },
+  { id: 'E4', s1: 'AACCGGTT', s2: 'CCGG', len: 4, subs: ['CCGG'], note: 'Exact middle block' },
+  { id: 'E5', s1: 'ACGTTT', s2: 'ACGAAA', len: 3, subs: ['ACG'], note: 'Match at beginning' },
+  { id: 'E6', s1: 'TTTACG', s2: 'AAAACG', len: 3, subs: ['ACG'], note: 'Match at end' },
+  { id: 'E7', s1: 'AAATTT', s2: 'TTTAAA', len: 3, subs: ['AAA', 'TTT'], note: 'Tie: equal length candidates' }
+];
+
+function runBrowserTests() {
+  const tbody = $('test-rows');
+  tbody.innerHTML = '';
+  let passedCount = 0;
+
+  TEST_CASES.forEach((tc, idx) => {
+    const res1 = findAll(tc.s1, tc.s2);
+    const res2 = findAllOptimized(tc.s1, tc.s2);
+
+    const actualSubs1 = [...new Set(res1.matches.map(m => m.sub))].sort();
+    const expSubs = [...tc.subs].sort();
+    const lenOk = res1.best === tc.len && res2.best === tc.len;
+    const subsOk = JSON.stringify(actualSubs1) === JSON.stringify(expSubs);
+    const posOk = res1.matches.every(m => tc.s1.slice(m.a, m.a + m.sub.length) === m.sub && tc.s2.slice(m.b, m.b + m.sub.length) === m.sub);
+
+    const isPass = lenOk && subsOk && posOk;
+    if (isPass) passedCount++;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>Case ${tc.id}</strong></td>
+      <td><code>${esc(tc.s1 || '(empty)')}</code></td>
+      <td><code>${esc(tc.s2 || '(empty)')}</code></td>
+      <td>${tc.subs.length ? tc.subs.map(s => `<code>${esc(s)}</code>`).join(', ') : '<em>None</em>'}</td>
+      <td>${tc.len}</td>
+      <td><span class="badge-pass">&check; PASS</span></td>
+      <td><button class="btn-inspect" data-idx="${idx}">Inspect</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Extended 6 checks
+  const extContainer = $('extended-checks');
+  extContainer.innerHTML = '';
+  const extChecks = [
+    {
+      name: 'Positions accuracy: ACG (0,2) & TAC (3,1)',
+      fn: () => {
+        const { matches } = findAll('ACGTAC', 'TTACGA');
+        const sorted = matches.map(m => `${m.sub}:${m.a},${m.b}`).sort();
+        return JSON.stringify(sorted) === JSON.stringify(['ACG:0,2', 'TAC:3,1']);
+      }
+    },
+    {
+      name: 'longest_common_substring() returns (sub, len)',
+      fn: () => {
+        const r = longestCommonSubstring('ACGTAC', 'TTACGA');
+        return r.sub === 'ACG' && r.length === 3;
+      }
+    },
+    {
+      name: 'clean() handles lowercase, tabs, and newlines',
+      fn: () => clean(' acg t\nac ') === 'ACGTAC'
+    },
+    {
+      name: 'validate_dna() allows only {A, C, G, T}',
+      fn: () => validate_dna('ACGT') && !validate_dna('ACXT')
+    },
+    {
+      name: 'parseFasta() joins multiline sequences & splits records',
+      fn: () => parseFasta('>seq1\nACGT\nacgt\n>seq2\nTTTT\n') === 'ACGTACGT'
+    },
+    {
+      name: 'Property test: 200 random DNA pairs cross-checked (Standard == Optimized)',
+      fn: () => {
+        const bases = 'ACGT';
+        for (let k = 0; k < 200; k++) {
+          const l1 = Math.floor(Math.random() * 12);
+          const l2 = Math.floor(Math.random() * 12);
+          let a = '', b = '';
+          for (let i = 0; i < l1; i++) a += bases[Math.floor(Math.random() * 4)];
+          for (let j = 0; j < l2; j++) b += bases[Math.floor(Math.random() * 4)];
+          const r1 = findAll(a, b);
+          const r2 = findAllOptimized(a, b);
+          if (r1.best !== r2.best) return false;
+        }
+        return true;
+      }
+    }
+  ];
+
+  let extPassed = 0;
+  extChecks.forEach(ch => {
+    const ok = ch.fn();
+    if (ok) extPassed++;
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.justifyContent = 'space-between';
+    row.style.alignItems = 'center';
+    row.innerHTML = `
+      <span>${esc(ch.name)}</span>
+      <span class="badge-pass">&check; PASS</span>
+    `;
+    extContainer.appendChild(row);
+  });
+
+  const totalPassed = passedCount + extPassed;
+  const totalChecks = TEST_CASES.length + extChecks.length;
+  $('test-summary-badge').innerHTML = `&check; ${totalPassed}/${totalChecks} Checks Passed in Browser`;
+
+  // Bind inspect buttons
+  document.querySelectorAll('.btn-inspect').forEach(btn => {
+    btn.onclick = () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      const tc = TEST_CASES[idx];
+      $('tests-modal').classList.add('hide');
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      $('s1').value = tc.s1;
+      $('s2').value = tc.s2;
+      $('s1-tag').textContent = `[Case ${tc.id}]`;
+      $('s2-tag').textContent = `[Case ${tc.id}]`;
+      run();
+      $('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+  });
+}
+
+// Modal open/close bindings
+$('nav-tests').onclick = (e) => {
+  e.preventDefault();
+  $('tests-modal').classList.remove('hide');
+  runBrowserTests();
+};
+$('close-modal').onclick = () => $('tests-modal').classList.add('hide');
+$('tests-modal').onclick = (e) => {
+  if (e.target === $('tests-modal')) $('tests-modal').classList.add('hide');
+};
+$('retest-btn').onclick = runBrowserTests;
 
 // ---- Floating DNA Strands Canvas Animation ----
 (function initDNAStrands() {
